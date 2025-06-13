@@ -1,0 +1,14 @@
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-06-04 17:37 CEST
+Nmap scan report for 192.168.249.16
+Host is up (0.011s latency).
+Not shown: 999 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+53/tcp open  domain  dnsmasq 2.51
+| dns-nsid: 
+|   NSID: hplss-cnsm01 (68706c73732d636e736d3031)
+|   id.server: hplss-cnsm01
+|_  bind.version: dnsmasq-2.51
+MAC Address: FA:15:71:EF:9C:03 (Unknown)
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 16.62 seconds
