@@ -6,37 +6,77 @@
 # Alle Scanns mit Nmap
 
 
-
-# Vulnerability Scan
+# Vulnerability Scann
 vul_scan() {
-    local ip=$1
+    local target=$1
     local output_dir=$2
-
-    log_info "Starte Vulnerability Scan für $ip..."
-    local nmap_vuln_file="$output_dir/nmap_vuln_$ip.txt"
-    nmap --script vuln "$ip" > "$nmap_vuln_file" 2>&1
     
-    if [[ $? -eq 0 ]]; then
-        log_success "Vulnerability Scan für $ip abgeschlossen"
+    log_info "Suche nach bekannten Schwachstellen auf $target..."
+    
+    # Vulnerability Scripts ausführen
+    nmap --script vuln "$target" -oN "$output_dir/vulnerability_$target.txt" > /dev/null 2>&1
+    
+    # Kritische Schwachstellen zählen - FIX: Zeilenumbrüche entfernen
+    local critical_vulns=$(grep -c "CRITICAL" "$output_dir/vulnerability_$target.txt" 2>/dev/null | tr -d '\n' || echo "0")
+    local high_vulns=$(grep -c "HIGH" "$output_dir/vulnerability_$target.txt" 2>/dev/null | tr -d '\n' || echo "0")
+    
+    # Alternative Lösung - noch sauberer:
+    # local critical_vulns
+    # local high_vulns
+    # critical_vulns=$(grep -c "CRITICAL" "$output_dir/vulnerability_$target.txt" 2>/dev/null || echo "0")
+    # high_vulns=$(grep -c "HIGH" "$output_dir/vulnerability_$target.txt" 2>/dev/null || echo "0")
+    
+    if [ "$critical_vulns" -gt 0 ] || [ "$high_vulns" -gt 0 ]; then
+        log_warning "Gefunden: $critical_vulns kritische und $high_vulns hohe Schwachstellen"
     else
-        log_warning "Vulnerability Scan für $ip hatte Probleme"
+        log_success "Keine kritischen Schwachstellen gefunden"
     fi
-}
+}  
+
 
 # Standard Nmap Port Scan
-nmap_scan() {
-    local ip=$1
+port_scan() {
+    local target=$1
     local output_dir=$2
     
-    log_info "Starte Nmap Port Scan für $ip..."
-    local nmap_file="$output_dir/nmap_scan_$ip.txt"
-    nmap -sV -sC "$ip" > "$nmap_file" 2>&1
+    log_info "Starte Port-Scan für $target..."
     
-    if [[ $? -eq 0 ]]; then
-        log_success "Nmap Scan für $ip abgeschlossen"
-    else
-        log_warning "Nmap Scan für $ip hatte Probleme"
-    fi
+    # Häufige Ports scannen
+    local common_ports="21,22,23,25,53,80,110,143,443,993,995,8080,3389"
+    
+    nmap -sS -O -sV -p "$common_ports" "$target" -oN "$output_dir/port_scan_$target.txt" > /dev/null 2>&1
+    
+    # Offene Ports extrahieren
+    grep "open" "$output_dir/port_scan_$target.txt" | awk '{print $1, $3, $4, $5}' > "$output_dir/open_ports_$target.txt"
+    
+    local open_ports=$(wc -l < "$output_dir/open_ports_$target.txt")
+    log_success "Gefunden: $open_ports offene Ports auf $target"
 }
 
 
+# Service-spezifische Checks
+check_services() {
+    local target=$1
+    local output_dir=$2
+    
+    log_info "Analysiere Services auf $target..."
+    
+    # Detaillierter Service-Scan
+    nmap -sV -sC --script=default,vuln "$target" -oN "$output_dir/service_scan_$target.txt" > /dev/null 2>&1
+    
+    log_success "Service-Analyse für $target abgeschlossen"
+}
+
+
+# Service Detection und Version
+service_detection() {
+    local target=$1
+    local output_dir=$2
+    
+    log_info "Analysiere Services auf $target..."
+    
+    # Detaillierter Service-Scan
+    nmap -sV -sC --script=default,vuln "$target" -oN "$output_dir/service_scan_$target.txt" > /dev/null 2>&1
+    
+    log_success "Service-Analyse für $target abgeschlossen"
+}

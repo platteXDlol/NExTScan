@@ -11,87 +11,81 @@
 
 # HTML-Report erstellen
 create_html_report() {
-    local output_dir=$1
-    local html_file="$output_dir/scan_report.html"
+    local target=$1
+    local output_dir=$2
+    local report_file="$output_dir/security_report_$(date +%Y%m%d_%H%M%S).html"
     
-    cat > "$html_file" << EOF
+    log_info "Generiere Security Report..."
+    
+    cat > "$report_file" << EOF
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NExTScan Report</title>
-    <meta charset="UTF-8">
+    <title>Security Assessment Report</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 20px; 
-            background-color: #f5f5f5;
-        }
-        .header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .success { color: #27ae60; font-weight: bold; }
-        .error { color: #e74c3c; font-weight: bold; }
-        .warning { color: #f39c12; font-weight: bold; }
-        .info { color: #3498db; font-weight: bold; }
-        pre { 
-            background: #ecf0f1; 
-            padding: 15px; 
-            border-radius: 5px;
-            overflow-x: auto;
-            border-left: 4px solid #3498db;
-        }
-        .host-section {
-            background: white;
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .summary {
-            display: flex;
-            justify-content: space-around;
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .summary div {
-            text-align: center;
-        }
-        .summary h3 {
-            margin: 0;
-            color: #2c3e50;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
+        .section { margin: 20px 0; padding: 15px; border-left: 4px solid #3498db; }
+        .critical { border-left-color: #e74c3c; }
+        .warning { border-left-color: #f39c12; }
+        .success { border-left-color: #27ae60; }
+        .code { background-color: #f8f9fa; padding: 10px; font-family: monospace; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🔍 NExTScan Penetration Test Report</h1>
-        <p>Erstellt am: $(date)</p>
-        <p>Scan durchgeführt von: $(whoami)</p>
+        <h1>Security Assessment Report</h1>
+        <p>Target: $target | Date: $(date)</p>
     </div>
     
-    <div class="summary">
-        <div>
-            <h3>${#reachable_ips[@]}</h3>
-            <p class="success">Erreichbare IPs</p>
-        </div>
-        <div>
-            <h3>${#unreachable_ips[@]}</h3>
-            <p class="error">Nicht erreichbare IPs</p>
-        </div>
-        <div>
-            <h3>$(date +%H:%M)</h3>
-            <p class="info">Scan-Zeit</p>
-        </div>
+    <div class="section">
+        <h2>Executive Summary</h2>
+        <p>Automated security assessment wurde für $target durchgeführt.</p>
     </div>
+    
+    <div class="section">
+        <h2>Offene Ports</h2>
+        <table>
+            <tr><th>Port</th><th>Status</th><th>Service</th><th>Version</th></tr>
+EOF
+
+
+
+
+
+
+
+
+
+
+    # Offene Ports in Tabelle einfügen
+    if [ -f "$output_dir/open_ports_$target.txt" ]; then
+        while read line; do
+            echo "            <tr><td>$(echo $line | awk '{print $1}')</td><td>$(echo $line | awk '{print $2}')</td><td>$(echo $line | awk '{print $3}')</td><td>$(echo $line | awk '{print $4}')</td></tr>" >> "$report_file"
+        done < "$output_dir/open_ports_$target.txt"
+    fi
+    
+    cat >> "$report_file" << EOF
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Empfehlungen</h2>
+        <ul>
+            <li>Schließe unnötige offene Ports</li>
+            <li>Update alle Services auf aktuelle Versionen</li>
+            <li>Implementiere Firewall-Regeln</li>
+            <li>Regelmäßige Security-Updates durchführen</li>
+        </ul>
+    </div>
+</body>
+</html>
 EOF
     
-    echo "$html_file"
+    log_success "Report erstellt: $report_file"
 }
 
 
