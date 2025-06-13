@@ -43,33 +43,8 @@ check_ip_reachability() {
 # All Rechable IPs in Network
 network_ips() {
     local network=$1
-    log_info "Scanne Netzwerk $network..."
-    
-    # Arrays leeren für neuen Scan
-    reachable_ips=()
-    unreachable_ips=()
+    log_info "Get all IPs in Network $network..."
     
     # Host Discovery
     nmap -sn "$network" -oG - | awk '/Up$/{print $2}'
-
-    # Jede gefundene IP testen
-    while read -r ip; do
-        if [[ -n "$ip" ]] && validate_ip "$ip"; then
-            check_ip_reachability "$ip"
-        fi
-    done < temp_ips.txt
-    
-    rm -f temp_ips.txt
-    
-    log_info "Netzwerk-Scan abgeschlossen. Gefunden: ${#reachable_ips[@]} erreichbare IPs"
-    
-    # Automatisch alle gefundenen IPs scannen
-    if [ ${#reachable_ips[@]} -gt 0 ]; then
-        # Neues output_dir für Netzwerk-Scan
-        local network_output_dir="scan_reports/scan_results_$(date +%Y%m%d_%H%M%S)"
-        mkdir -p "$network_output_dir"
-        start_scanning "$network_output_dir"
-    else
-        log_warning "Keine erreichbaren IPs zum Scannen gefunden"
-    fi
 }

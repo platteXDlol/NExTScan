@@ -10,34 +10,31 @@
 
 
 # HTML-Report erstellen
-# HTML Report initialisieren
 create_html_report() {
     local output_dir=$1
     local html_file="$output_dir/scan_report.html"
-    
-    # Validierung hinzufügen
-    if [[ -z "$output_dir" ]]; then
-        log_error "create_html_report: output_dir Parameter fehlt!"
-        return 1
-    fi
-    
-    # Stelle sicher dass Verzeichnis existiert
+
+    [[ -z "$output_dir" ]] && { log_error "create_html_report: output_dir Parameter fehlt!"; return 1; }
+
     mkdir -p "$output_dir"
-    
-    cat > "$html_file" << EOF
+
+    cat >"$html_file" <<'EOF'
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
+    <meta charset="UTF-8">
     <title>Penetration Test Report</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .header { background: #2c3e50; color: white; padding: 20px; }
-        .success { color: #27ae60; }
-        .warning { color: #f39c12; }
-        .error { color: #e74c3c; }
-        .info { color: #3498db; }
-        .host-section { border: 1px solid #ddd; margin: 10px 0; padding: 15px; }
-        pre { background: #f8f9fa; padding: 10px; overflow-x: auto; }
+        body         { font-family: Arial, sans-serif; margin: 20px; }
+        .header      { background:#2c3e50; color:#fff; padding:20px; border-radius:6px; }
+        .success     { color:#27ae60; }
+        .warning     { color:#f39c12; }
+        .error       { color:#e74c3c; }
+        .info        { color:#3498db; }
+        .host-section{ border:1px solid #ddd; margin:20px 0; padding:15px; border-radius:6px;
+                       background:#fafafa; box-shadow:0 0 5px rgba(0,0,0,.05); }
+        h2           { margin-top:0; }
+        pre          { background:#f8f9fa; padding:10px; overflow-x:auto; border-radius:4px; }
     </style>
 </head>
 <body>
@@ -47,36 +44,51 @@ create_html_report() {
         <p>Autor: Pascal Hocher</p>
     </div>
 EOF
-    
-    echo "$html_file"  # Gibt Pfad zurück
+    echo "$html_file"
+}
+
+add() {
+    add_to_html "$html_file" "<h3>Offene Ports:</h3>" "info" true
+    add_to_html "$html_file" "<pre>$(head -20 "$output_dir/port_scan_$ip.txt")</pre>" "info" true
+    # Service
+    add_to_html "$html_file" "<h3>Service Detection:</h3>" "info" true
+    add_to_html "$html_file" "<pre>$(head -20 "$output_dir/service_scan_$ip.txt")</pre>" "info" true
+    # Vuln
+    add_to_html "$html_file" "<h3>Vulnerability Scan:</h3>" "warning" true
+    add_to_html "$html_file" "<pre>$(head -20 "$output_dir/vulnerability_$ip.txt")</pre>" "warning" true
+    # OS
+    add_to_html "$html_file" "<h3>OS Detection:</h3>" "info" true
+    add_to_html "$html_file" "<pre>$(head -20 "$output_dir/os_scan_$ip.txt")</pre>" "info" true
+    # UPD
+    add_to_html "$html_file" "<h3>UDP Scan:</h3>" "info" true
+    add_to_html "$html_file" "<pre>$(head -20 "$output_dir/udp_scan_$ip.txt")</pre>" "info" true
 }
 
 add_to_html() {
     local html_file=$1
     local content=$2
     local class=${3:-"info"}
-    
-    # Validierung
-    if [[ -z "$html_file" ]] || [[ -z "$content" ]]; then
-        log_error "add_to_html: Parameter fehlen!"
-        return 1
+    local raw=${4:-false}
+
+    [[ -z "$html_file" || -z "$content" ]] && { log_error "add_to_html: Parameter fehlen!"; return 1; }
+
+    # Bei Bedarf escapen
+    if [[ "$raw" != true ]]; then
+        content=$(echo "$content" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
     fi
-    
-    # HTML-Zeichen escapen für Sicherheit
-    content=$(echo "$content" | sed 's/</\&lt;/g; s/>/\&gt;/g')
-    
-    echo "<div class=\"$class\">$content</div>" >> "$html_file"
+
+    echo "<div class=\"$class\">$content</div>" >>"$html_file"
 }
+
+
+
+
 
 finalize_html_report() {
     local html_file=$1
-    
-    if [[ -z "$html_file" ]]; then
-        log_error "finalize_html_report: html_file Parameter fehlt!"
-        return 1
-    fi
-    
-    cat >> "$html_file" << EOF
+    [[ -z "$html_file" ]] && { log_error "finalize_html_report: html_file Parameter fehlt!"; return 1; }
+
+    cat >>"$html_file" <<'EOF'
 </body>
 </html>
 EOF
