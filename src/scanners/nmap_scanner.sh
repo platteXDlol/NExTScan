@@ -54,19 +54,6 @@ port_scan() {
 }
 
 
-# Service-spezifische Checks
-check_services() {
-    local target=$1
-    local output_dir=$2
-    
-    log_info "Analysiere Services auf $target..."
-    
-    # Detaillierter Service-Scan
-    nmap -sV -sC --script=default,vuln "$target" -oN "$output_dir/service_scan_$target.txt" > /dev/null 2>&1
-    
-    log_success "Service-Analyse für $target abgeschlossen"
-}
-
 
 # Service Detection und Version
 service_detection() {
@@ -79,4 +66,36 @@ service_detection() {
     nmap -sV -sC --script=default,vuln "$target" -oN "$output_dir/service_scan_$target.txt" > /dev/null 2>&1
     
     log_success "Service-Analyse für $target abgeschlossen"
+}
+
+
+os_detection() {
+    local target=$1
+    local output_dir=$2
+    
+    log_info "Bestimme Betriebssystem für $target..."
+    
+    # OS Detection
+    nmap -O "$target" -oN "$output_dir/os_scan_$target.txt" > /dev/null 2>&1
+    
+    if grep -q "OS details:" "$output_dir/os_scan_$target.txt"; then
+        log_success "Betriebssystem für $target erkannt"
+    else
+        log_warning "Betriebssystem für $target konnte nicht erkannt werden"
+    fi
+}
+
+
+upd_scan() {
+    local target=$1
+    local output_dir=$2
+    
+    log_info "Starte UPD-Scan für $target..."
+    
+    # UPD Scan
+    local upd_ports="53,67,68,69,123,161,162,514"
+    nmap -sU -p "$upd_ports" "$target" -oN "$output_dir/upd_scan_$target.txt" > /dev/null 2>&1
+
+    local open_upd=$(grep "open" "$output_dir/upd_scan_$target.txt" | wc -l)
+    log_success "Gefunden: $open_upd offene UPD-Ports auf $target"
 }

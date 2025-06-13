@@ -50,8 +50,8 @@ network_ips() {
     unreachable_ips=()
     
     # Host Discovery
-    nmap -sn "$network" | grep "Nmap scan report" | awk '{print $5}' | sed 's/[()]//g' > temp_ips.txt
-    
+    nmap -sn "$network" -oG - | awk '/Up$/{print $2}'
+
     # Jede gefundene IP testen
     while read -r ip; do
         if [[ -n "$ip" ]] && validate_ip "$ip"; then
