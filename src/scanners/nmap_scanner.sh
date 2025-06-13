@@ -19,12 +19,7 @@ vul_scan() {
     # Kritische Schwachstellen zählen - FIX: Zeilenumbrüche entfernen
     local critical_vulns=$(grep -c "CRITICAL" "$output_dir/vulnerability_$target.txt" 2>/dev/null | tr -d '\n' || echo "0")
     local high_vulns=$(grep -c "HIGH" "$output_dir/vulnerability_$target.txt" 2>/dev/null | tr -d '\n' || echo "0")
-    
-    # Alternative Lösung - noch sauberer:
-    # local critical_vulns
-    # local high_vulns
-    # critical_vulns=$(grep -c "CRITICAL" "$output_dir/vulnerability_$target.txt" 2>/dev/null || echo "0")
-    # high_vulns=$(grep -c "HIGH" "$output_dir/vulnerability_$target.txt" 2>/dev/null || echo "0")
+
     
     if [ "$critical_vulns" -gt 0 ] || [ "$high_vulns" -gt 0 ]; then
         log_warning "Gefunden: $critical_vulns kritische und $high_vulns hohe Schwachstellen"
@@ -42,7 +37,7 @@ port_scan() {
     log_info "Starte Port-Scan für $target..."
     
     # Häufige Ports scannen
-    local common_ports="21,22,23,25,53,80,110,143,443,993,995,8080,3389"
+    local common_ports="21,22,23,25,53,80,110,143,443,993,995,4444,8080,3389"
     
     nmap -sS -O -sV -p "$common_ports" "$target" -oN "$output_dir/port_scan_$target.txt" > /dev/null 2>&1
     
@@ -86,16 +81,16 @@ os_detection() {
 }
 
 
-upd_scan() {
+udp_scan() {
     local target=$1
     local output_dir=$2
     
     log_info "Starte UPD-Scan für $target..."
     
     # UPD Scan
-    local upd_ports="53,67,68,69,123,161,162,514"
+    local udp_ports="53,67,68,69,123,161,162,514"
     nmap -sU -p "$upd_ports" "$target" -oN "$output_dir/upd_scan_$target.txt" > /dev/null 2>&1
 
-    local open_upd=$(grep "open" "$output_dir/upd_scan_$target.txt" | wc -l)
-    log_success "Gefunden: $open_upd offene UPD-Ports auf $target"
+    local open_udp=$(grep "open" "$output_dir/upd_scan_$target.txt" | wc -l)
+    log_success "Gefunden: $open_udp offene UPD-Ports auf $target"
 }
