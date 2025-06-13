@@ -106,7 +106,7 @@ open_last_report() {
     fi
     
     # Suche HTML Report im Ordner
-    local html_file="$latest_dir/scan_report.html"
+    local html_file=$(find "$latest_dir" -name "security_report_*.html" | head -1)
     
     if [ ! -f "$html_file" ]; then
         log_error "HTML Report nicht gefunden in $latest_dir"
