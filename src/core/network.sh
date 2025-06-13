@@ -43,8 +43,14 @@ check_ip_reachability() {
 # All Rechable IPs in Network
 network_ips() {
     local network=$1
-    log_info "Get all IPs in Network $network..."
-    
-    # Host Discovery
-    nmap -sn "$network" -oG - | awk '/Up$/{print $2}'
+    log_info "Get all IPs and hostnames in network $network..."
+
+    # Host Discovery mit Reverse DNS
+    nmap -sn -R "$network" -oG - | awk '
+        /Up$/ {
+            ip = $2
+            hostname = ($3 != "") ? $3 : "-"
+            gsub("[()]", "", hostname)
+            printf "%s\t%s\n", ip, hostname
+        }'
 }
