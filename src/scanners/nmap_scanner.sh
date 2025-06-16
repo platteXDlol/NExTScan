@@ -39,7 +39,7 @@ port_scan() {
     # Häufige Ports scannen
     local common_ports="21,22,23,25,53,80,110,143,443,993,995,4444,8080,3389"
     
-    nmap -sS -O -sV -p "$common_ports" "$target" -oN "$output_dir/port_scan_$target.txt" > /dev/null 2>&1
+    nmap -sS -sV -p "$common_ports" "$target" -oN "$output_dir/port_scan_$target.txt" > /dev/null 2>&1
     
     # Offene Ports extrahieren
     grep "open" "$output_dir/port_scan_$target.txt" | awk '{print $1, $3, $4, $5}' > "$output_dir/open_ports_$target.txt"
@@ -89,7 +89,7 @@ udp_scan() {
     
     # UPD Scan
     local udp_ports="53,67,68,69,123,161,162,514"
-    nmap -sU -p "$upd_ports" "$target" -oN "$output_dir/upd_scan_$target.txt" > /dev/null 2>&1
+    nmap -sU -p "$udp_ports" "$target" -oN "$output_dir/upd_scan_$target.txt" > /dev/null 2>&1
 
     local open_udp=$(grep "open" "$output_dir/upd_scan_$target.txt" | wc -l)
     log_success "Gefunden: $open_udp offene UPD-Ports auf $target"
