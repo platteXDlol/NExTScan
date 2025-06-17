@@ -79,18 +79,3 @@ os_detection() {
         log_warning "Betriebssystem für $target konnte nicht erkannt werden"
     fi
 }
-
-
-udp_scan() {
-    local target=$1
-    local output_dir=$2
-    
-    log_info "Starte UPD-Scan für $target..."
-    
-    # UPD Scan
-    local udp_ports="53,67,68,69,123,161,162,514"
-    nmap -sU -p "$udp_ports" "$target" -oN "$output_dir/upd_scan_$target.txt" > /dev/null 2>&1
-
-    local open_udp=$(grep "open" "$output_dir/upd_scan_$target.txt" | wc -l)
-    log_success "Gefunden: $open_udp offene UPD-Ports auf $target"
-}
